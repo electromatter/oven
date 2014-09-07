@@ -1,20 +1,20 @@
 OVEN
 ====
-Super simple gpio thing for toaster-oven reflow-oven.
+Super simple gpio thing for toaster-oven reflow-oven using Arduino Micro.
+
+UART at 115200 over usb
+
+Write '1' to enable the oven for the value of timeoff in milliseconds
+
+Write '0' to disable the oven
+
+Arduino responds with: base64 encoded varint containing the analog value
 
 
-uart at 115200 over usb
-
-
-write '1' to enable the oven for the value of timeoff in milliseconds
-write '0' to disable the oven
-arduino responds with: base64 encoded varint containing the analog value
-
-
-equations:
+Equations:
 --
 
-voltage from analog value
+Voltage from analog value:
 
 
 ````
@@ -22,7 +22,7 @@ V = A * (5.0 / 1023.0)
 ````
 
 
-temperature (in *C) from voltage
+Temperature (in *C) from voltage:
 
 
 ````
