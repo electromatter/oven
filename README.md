@@ -12,7 +12,19 @@ arduino responds with: base64 encoded varint containing the analog value
 
 
 equations:
+--
+
 voltage from analog value
-`V = A * (5.0 / 1023.0)`
+
+
+````
+V = A * (5.0 / 1023.0)
+````
+
+
 temperature (in *C) from voltage
-`T = (V - 1.25) / 0.005`
+
+
+````
+T = (V - 1.25) / 0.005
+````
