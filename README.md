@@ -31,8 +31,7 @@ Voltage from analog value, with calibration:
 # Calibration_Voltage is read from the config and is
 # usually between 1.0-4.0 Volts
 Calibration_Voltage = 3.3
-k = Calibration_Voltage / ADC_Reading
-Volts = k * ADC_Reading
+Volts = ADC_Reading * Calibration_Voltage / Calibration_Reading
 ```
 
 Temperature (in deg C) from voltage:
