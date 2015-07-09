@@ -41,3 +41,8 @@ Temperature (in deg C) from voltage:
 Temperature = (Volts - 1.25) / 0.005
 ```
 
+Notes
+----
+Using the calibration on a seperate pin may introduce noise ~N(1/x).
+It may be better to put the reference on the adc reference pin
+

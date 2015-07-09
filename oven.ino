@@ -63,6 +63,19 @@
  * If a command is unreconized, this device responds with:
  *  'Invalid command, use help for a list of commands.'
  * 
+ * Equations:
+ *  Voltage from analog value:
+ *   // Voltage reference on the AVR ADC
+ *   ADC_Ref = 5.0
+ *   k = (ADC_Ref / 1023.)
+ *   Volts = k * ADC_Reading
+ *  Voltage from analog value, with calibration:
+ *   Calibration_Voltage = 3.3
+ *   Volts = (Calibration_Voltage / Calibration_Reading) * ADC_Reading
+ *  Temperature (in deg C) from voltage:
+ *   // May vary, see your thermocouple amp datasheet
+ *   Temperature = (Volts - 1.25) / 0.005
+ * 
  * improvements:
  *   add current/voltage/or energy mesurement to the oven elements to more accurately get the energy
  *   pid on the arduino instead of the controller
