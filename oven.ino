@@ -108,6 +108,8 @@ const int led_pin = 13;
 const int maxtimeout = 100;
 /* must be greater than zero. recommend: 80                                    */
 const int linemax = 80;
+/* max value to be returned in the time since last command field of read       */
+const int last_read_timeout = 1000;
 
 /* null terminated line string */
 char line[linemax + 1] = {0};
@@ -136,7 +138,8 @@ static int state = 0;
 static int linelen = 0;
 
 static int oven_enabled = 0;
-static int oven_timeout = 0;
+static unsigned long last_read_time = 0;
+static int last_read_time_enabled = 0;
 
 static volatile int wdt = 0;
 
@@ -146,6 +149,7 @@ static const char *commands[] = {"read", "on", "off", "version", "config", "help
 
 #include <ctype.h>
 #include <string.h>
+#include <limits.h>
 
 void wdt_expire(void);
 
@@ -279,8 +283,18 @@ int read_line() {
   return 0;
 }
 
+unsigned long delta_millis(unsigned long epoch) {
+  unsigned long now = millis();
+  unsigned long delta_time;
+  delta_time = now - epoch;
+  /* if the timer rolled around */
+  if (now < epoch)
+    delta_time += ULONG_MAX;
+  return delta_time;
+}
+
 void sensor_readings(void) {
-  int now;
+  unsigned long delta_time;
   /* therm */
   Serial.print(analogRead(therm_pin));
   Serial.print(" ");
@@ -292,24 +306,22 @@ void sensor_readings(void) {
   /* oven enabled */
   Serial.print(" ");
   if (relay_pin < 0) {
-    Serial.println("x x");
+    Serial.println("x ");
   } else {
     Serial.print(oven_enabled);
     /* oven delta time */
-    if (oven_enabled) {
-      Serial.print(" ");
-      now = millis();
-      /* this here handles rollover. this function is guarenteed to be *
-       *   called on either one or zero rollovers                      */
-      if (now > oven_timeout)
-        Serial.println(now - oven_timeout);
-      else
-        Serial.println(oven_timeout - now);
-      oven_timeout = now;
-    } else {
-      Serial.println(" x");
-    }
+    Serial.print(" ");
   }
+  
+  delta_time = delta_millis(last_read_time);
+  last_read_time += delta_time;
+
+  if (!last_read_time_enabled)
+    delta_time = 0;
+  
+  Serial.println(delta_time);
+  
+  last_read_time_enabled = 1;
 }
 
 void oven_power(int powered) {
@@ -347,8 +359,6 @@ void on(int duration) {
 
   /* set the wdt, reset the oven time integrator, echo readings*/
   set_wdt(duration);
-  if (!oven_enabled)
-    oven_timeout = millis();
   oven_power(1);
   sensor_readings();
 }
@@ -363,7 +373,6 @@ void off(void) {
 
   /* turn relay off, clear wdt, and echo sensor readings */
   oven_power(0);
-  clear_wdt();
   sensor_readings();
 }
 
@@ -500,6 +509,9 @@ void loop(void) {
   char *argv[max_args] = {0};
   int command;
   int arg;
+
+  if (last_read_time_enabled && delta_millis(last_read_time) > last_read_timeout)
+    last_read_time_enabled = 0;
 
   /* read a command */
   if (!read_line())
